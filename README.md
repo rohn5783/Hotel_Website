@@ -93,14 +93,15 @@ When the hotel owner logs in with their credentials, the public landing page tra
 
 3. **Configure Environment Variables (Optional for Supabase Cloud):**
    Create a `.env` file in the project root.
-   Add the public Supabase connection values (the anon key is intended for browser use; protect data with the RLS policies below):
+   Add Supabase connection settings without a `VITE_` prefix:
    ```env
-   VITE_SUPABASE_URL=https://your-project.supabase.co
-   VITE_SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
    ```
+   The Vite dev server reads these values and serves them from `/api/supabase-config`, matching the Vercel deployment setup.
    *(Note: The project works out of the box even without Supabase keys using local dual-mode).*
 
-   **Never put a service-role key or other private secret in a `VITE_` variable or in Vercel frontend settings.** Vite-prefixed values are included in browser code. This app uses Supabase Auth, Row Level Security (RLS), and an Edge Function for privileged admin creation.
+   **The anon key is public by design.** `/api/supabase-config` sends it to the browser at runtime, so this removes the Vercel `VITE_` prefix warning but does not make the anon key secret. Never expose a service-role key or other private secret through this endpoint or a `VITE_` variable. This app uses Supabase Auth, Row Level Security (RLS), and an Edge Function for privileged admin creation.
 
 4. **Start the local development server:**
    ```bash
@@ -146,7 +147,7 @@ These demo credentials are available only in local demo mode (without Supabase c
    supabase functions deploy create-admin
    ```
    The function checks the caller's Supabase session and `superadmin` role before creating an `admin`. Supabase's `SUPABASE_SERVICE_ROLE_KEY` stays in the Edge Function environment; never copy it to Vercel or a `VITE_` variable.
-4. In Vercel, configure only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the frontend, then redeploy. Remove unused `SUPERADMIN_SECRET_KEY` variables; this app authorizes superadmins through Supabase Auth and database roles instead.
+4. In Vercel, configure `SUPABASE_URL` and `SUPABASE_ANON_KEY` as regular environment variables (without a `VITE_` prefix), then redeploy. The `/api/supabase-config` function supplies the public client configuration at runtime. Never set `SUPABASE_SERVICE_ROLE_KEY` in Vercel for this frontend API. Remove unused `SUPERADMIN_SECRET_KEY` variables; this app authorizes superadmins through Supabase Auth and database roles instead.
 
 Customers can read only their own profile and bookings. Admins and superadmins can read all bookings and manage hotel settings/bookings. The public hotel settings contain website content and are intentionally readable by visitors—do not put private admin data there. Local demo mode stores data in the browser and is not a secure production backend.
 

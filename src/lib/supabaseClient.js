@@ -1,21 +1,23 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Read environment variables (configured via .env or Vercel dashboard)
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+export let isSupabaseConfigured = false;
+export let supabase = null;
 
-// True if real Supabase credentials are provided
-export const isSupabaseConfigured = Boolean(
-  supabaseUrl && 
-  supabaseAnonKey && 
-  supabaseUrl !== 'https://your-project-id.supabase.co' &&
-  !supabaseUrl.includes('placeholder')
-);
+export const supabaseReady = (async () => {
+  const response = await fetch('/api/supabase-config');
+  if (!response.ok) {
+    throw new Error(`Could not load Supabase configuration (HTTP ${response.status}).`);
+  }
 
-// Real client (or null if not yet configured)
-export const supabase = isSupabaseConfigured
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+  const { url = '', anonKey = '' } = await response.json();
+  if (!url && !anonKey) return;
+  if (!url || !anonKey || !url.startsWith('https://')) {
+    throw new Error('Supabase configuration is incomplete or invalid.');
+  }
+
+  supabase = createClient(url, anonKey);
+  isSupabaseConfigured = true;
+})();
 
 /**
  * Storage Keys for Local Dual-Mode Demo
