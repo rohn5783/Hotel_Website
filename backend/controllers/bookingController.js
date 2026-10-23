@@ -23,6 +23,7 @@ const serializeBooking = (booking) => ({
   grandTotal: booking.grandTotal,
   status: booking.status,
   paymentMode: booking.paymentMode,
+  paymentStatus: booking.paymentStatus || 'Pending',
 });
 
 const parseDate = (value) => {
@@ -94,11 +95,24 @@ export const createBooking = asyncHandler(async (request, response) => {
 export const updateBooking = asyncHandler(async (request, response) => {
   const { id } = request.params;
   const allowedStatuses = ['Confirmed (Pay at Hotel)', 'Checked In', 'Completed', 'Cancelled'];
+  const updates = {};
   if (!mongoose.isValidObjectId(id)) return response.status(400).json({ error: 'Booking id is invalid.' });
-  if (!allowedStatuses.includes(request.body.status)) {
-    return response.status(400).json({ error: 'Booking status is invalid.' });
+  if (request.body.status !== undefined) {
+    if (!allowedStatuses.includes(request.body.status)) {
+      return response.status(400).json({ error: 'Booking status is invalid.' });
+    }
+    updates.status = request.body.status;
   }
-  const booking = await Booking.findByIdAndUpdate(id, { status: request.body.status }, { new: true, runValidators: true });
+  if (request.body.paymentStatus !== undefined) {
+    if (!['Pending', 'Paid'].includes(request.body.paymentStatus)) {
+      return response.status(400).json({ error: 'Payment status is invalid.' });
+    }
+    updates.paymentStatus = request.body.paymentStatus;
+  }
+  if (Object.keys(updates).length === 0) {
+    return response.status(400).json({ error: 'No booking updates were provided.' });
+  }
+  const booking = await Booking.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
   if (!booking) return response.status(404).json({ error: 'Booking not found.' });
   return response.json({ booking: serializeBooking(booking) });
 });

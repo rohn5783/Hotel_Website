@@ -16,9 +16,9 @@ export const signup = asyncHandler(async (request, response) => {
   const email = typeof request.body.email === 'string' ? request.body.email.trim().toLowerCase() : '';
   const fullName = typeof request.body.fullName === 'string' ? request.body.fullName.trim() : '';
   const password = typeof request.body.password === 'string' ? request.body.password : '';
-  if (!validEmail(email) || fullName.length < 2 || fullName.length > 120 || password.length < 12 || password.length > 128) {
+  if (!validEmail(email) || fullName.length < 2 || fullName.length > 120 || password.length === 0) {
     return response.status(400).json({
-      error: 'Enter a valid email, a name of 2-120 characters, and a password of 12-128 characters.',
+      error: 'Enter a valid email, a name of 2-120 characters, and a non-empty password.',
     });
   }
 
@@ -36,11 +36,20 @@ export const signup = asyncHandler(async (request, response) => {
 export const login = asyncHandler(async (request, response) => {
   const email = typeof request.body.email === 'string' ? request.body.email.trim().toLowerCase() : '';
   const password = typeof request.body.password === 'string' ? request.body.password : '';
-  if (!validEmail(email) || password.length === 0 || password.length > 128) {
+  const expectedRole = request.body.role;
+  if (
+    !validEmail(email)
+    || password.length === 0
+    || (expectedRole !== undefined && !['admin', 'owner', 'user'].includes(expectedRole))
+  ) {
     return response.status(401).json({ error: 'Email or password is incorrect.' });
   }
   const user = await User.findOne({ email }).select('+passwordHash');
-  if (!user || !(await argon2.verify(user.passwordHash, password))) {
+  if (
+    !user
+    || !(await argon2.verify(user.passwordHash, password))
+    || (expectedRole && user.role !== expectedRole)
+  ) {
     return response.status(401).json({ error: 'Email or password is incorrect.' });
   }
 
@@ -58,8 +67,8 @@ export const logout = (_request, response) => {
 export const changePassword = asyncHandler(async (request, response) => {
   const currentPassword = typeof request.body.currentPassword === 'string' ? request.body.currentPassword : '';
   const newPassword = typeof request.body.newPassword === 'string' ? request.body.newPassword : '';
-  if (newPassword.length < 12 || newPassword.length > 128) {
-    return response.status(400).json({ error: 'New password must be between 12 and 128 characters.' });
+  if (newPassword.length === 0) {
+    return response.status(400).json({ error: 'New password must not be empty.' });
   }
 
   const user = await User.findById(request.authUser.id).select('+passwordHash');

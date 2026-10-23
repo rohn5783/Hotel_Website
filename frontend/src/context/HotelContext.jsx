@@ -16,7 +16,8 @@ export function HotelProvider({ children }) {
   const [bookings, setBookings] = useState([]);
   const [ownerSummary, setOwnerSummary] = useState({
     totalBookings: 0,
-    totalRevenue: 0,
+    paymentsReceived: 0,
+    paidBookings: 0,
     confirmedBookings: 0,
   });
   const [loading, setLoading] = useState(true);
@@ -24,8 +25,20 @@ export function HotelProvider({ children }) {
   const loadHotel = useCallback(async () => {
     try {
       const result = await apiRequest('/api/hotel');
+      if (
+        !result?.hotelData
+        || !Array.isArray(result.hotelData.rooms)
+        || typeof result.killSwitch?.isKilled !== 'boolean'
+      ) {
+        throw new Error('Hotel API returned an invalid settings response.');
+      }
       setHotelData(result.hotelData);
-      setKillSwitch(result.killSwitch);
+      setKillSwitch({
+        isKilled: result.killSwitch.isKilled,
+        reason: typeof result.killSwitch.reason === 'string'
+          ? result.killSwitch.reason
+          : initialKillSwitch.reason,
+      });
     } catch (error) {
       console.error('Could not load hotel settings:', error);
     } finally {
@@ -36,7 +49,7 @@ export function HotelProvider({ children }) {
   const loadBookings = useCallback(async () => {
     if (!currentUser) {
       setBookings([]);
-      setOwnerSummary({ totalBookings: 0, totalRevenue: 0, confirmedBookings: 0 });
+      setOwnerSummary({ totalBookings: 0, paymentsReceived: 0, paidBookings: 0, confirmedBookings: 0 });
       return;
     }
     if (currentUser.role === 'owner') {
@@ -45,6 +58,20 @@ export function HotelProvider({ children }) {
         setOwnerSummary(await apiRequest('/api/owner/summary'));
       } catch (error) {
         console.error('Could not load owner booking summary:', error);
+      }
+      return;
+    }
+    if (currentUser.role === 'admin') {
+      try {
+        const [summary, result] = await Promise.all([
+          apiRequest('/api/owner/summary'),
+          apiRequest('/api/bookings'),
+        ]);
+        setOwnerSummary(summary);
+        setBookings(result.bookings);
+      } catch (error) {
+        console.error('Could not load booking dashboard:', error);
+        setBookings([]);
       }
       return;
     }
@@ -103,11 +130,24 @@ export function HotelProvider({ children }) {
     setBookings((current) => current.map((booking) => (
       booking.id === id ? result.booking : booking
     )));
+    await loadBookings();
+  };
+
+  const updateBookingPaymentStatus = async (id, paymentStatus) => {
+    const result = await apiRequest(`/api/bookings/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ paymentStatus }),
+    });
+    setBookings((current) => current.map((booking) => (
+      booking.id === id ? result.booking : booking
+    )));
+    await loadBookings();
   };
 
   const deleteBooking = async (id) => {
     await apiRequest(`/api/bookings/${encodeURIComponent(id)}`, { method: 'DELETE' });
     setBookings((current) => current.filter((booking) => booking.id !== id));
+    await loadBookings();
   };
 
   return (
@@ -121,6 +161,7 @@ export function HotelProvider({ children }) {
       loadBookings,
       addBooking,
       updateBookingStatus,
+      updateBookingPaymentStatus,
       deleteBooking,
       loading,
     }}>

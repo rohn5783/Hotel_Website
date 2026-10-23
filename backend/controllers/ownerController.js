@@ -7,10 +7,13 @@ export const getOwnerSummary = asyncHandler(async (_request, response) => {
       $group: {
         _id: null,
         totalBookings: { $sum: 1 },
-        totalRevenue: {
+        paymentsReceived: {
           $sum: {
-            $cond: [{ $ne: ['$status', 'Cancelled'] }, '$grandTotal', 0],
+            $cond: [{ $eq: ['$paymentStatus', 'Paid'] }, '$grandTotal', 0],
           },
+        },
+        paidBookings: {
+          $sum: { $cond: [{ $eq: ['$paymentStatus', 'Paid'] }, 1, 0] },
         },
         confirmedBookings: {
           $sum: { $cond: [{ $eq: ['$status', 'Confirmed (Pay at Hotel)'] }, 1, 0] },
@@ -20,7 +23,8 @@ export const getOwnerSummary = asyncHandler(async (_request, response) => {
   ]);
   return response.json({
     totalBookings: summary.totalBookings || 0,
-    totalRevenue: summary.totalRevenue || 0,
+    paymentsReceived: summary.paymentsReceived || 0,
+    paidBookings: summary.paidBookings || 0,
     confirmedBookings: summary.confirmedBookings || 0,
   });
 });

@@ -6,6 +6,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
   const { login, signup } = useAuth();
 
   const [mode, setMode] = useState(initialMode); // 'login' or 'signup'
+  const [loginRole, setLoginRole] = useState(triggerReason === 'admin_unlock' ? 'admin' : 'user');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -21,7 +22,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
 
     try {
       if (mode === 'login') {
-        const res = await login(email, password);
+        const res = await login(email, password, loginRole);
         if (!res.success) {
           setErrorMsg(res.message);
           setLoading(false);
@@ -94,6 +95,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
                 type="button"
                 onClick={() => {
                   setMode('signup');
+                  setLoginRole('user');
                   setErrorMsg('');
                 }}
                 className={`py-2 rounded-lg transition ${
@@ -118,6 +120,27 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'login' && (
+                <div>
+                  <label htmlFor="login-role" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                    Sign in as
+                  </label>
+                  <select
+                    id="login-role"
+                    value={loginRole}
+                    onChange={(event) => setLoginRole(event.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-gold-500 focus:outline-none"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                    <option value="owner">Owner</option>
+                  </select>
+                  <p className="mt-1 text-[11px] text-slate-500">
+                    Your account role is verified securely when you sign in.
+                  </p>
+                </div>
+              )}
+
               {mode === 'signup' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -163,7 +186,6 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
                   <input
                     type="password"
                     required
-                    minLength={12}
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}

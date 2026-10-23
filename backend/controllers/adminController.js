@@ -10,10 +10,10 @@ export const createManagedUser = asyncHandler(async (request, response) => {
   if (
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
     || fullName.length < 2 || fullName.length > 120
-    || password.length < 12 || password.length > 128
+    || password.length === 0
     || !['owner', 'user'].includes(role)
   ) {
-    return response.status(400).json({ error: 'Enter valid account details. Passwords must be at least 12 characters.' });
+    return response.status(400).json({ error: 'Enter valid account details and a non-empty password.' });
   }
   try {
     const user = await User.create({

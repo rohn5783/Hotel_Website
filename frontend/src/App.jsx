@@ -62,7 +62,7 @@ function HotelAppContent() {
   };
 
   // KILL SWITCH ACTIVE CHECK
-  if (killSwitch.isKilled && currentUser?.role !== 'admin') {
+  if (killSwitch?.isKilled && currentUser?.role !== 'admin') {
     return (
       <>
         <SuspendedScreen

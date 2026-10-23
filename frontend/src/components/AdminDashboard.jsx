@@ -18,7 +18,16 @@ import { useHotel } from '../context/HotelContext';
 import { useAuth } from '../context/AuthContext';
 
 export default function AdminDashboard({ isOpen, onClose }) {
-  const { hotelData, updateHotelData, bookings, deleteBooking, updateBookingStatus, loadBookings } = useHotel();
+  const {
+    hotelData,
+    updateHotelData,
+    bookings,
+    ownerSummary,
+    deleteBooking,
+    updateBookingStatus,
+    updateBookingPaymentStatus,
+    loadBookings,
+  } = useHotel();
   const { currentUser, createManagedUser } = useAuth();
 
   const [activeTab, setActiveTab] = useState('bookings');
@@ -120,6 +129,16 @@ export default function AdminDashboard({ isOpen, onClose }) {
     } catch (error) {
       console.error('Could not update booking status:', error);
       setSaveError('Could not update booking status. Please try again.');
+    }
+  };
+
+  const handlePaymentStatus = async (id, paymentStatus) => {
+    setSaveError('');
+    try {
+      await updateBookingPaymentStatus(id, paymentStatus);
+    } catch (error) {
+      console.error('Could not update payment status:', error);
+      setSaveError('Could not update payment status. Please try again.');
     }
   };
 
@@ -251,6 +270,19 @@ export default function AdminDashboard({ isOpen, onClose }) {
           {/* TAB 1: Customer Bookings Table */}
           {activeTab === 'bookings' && (
             <div>
+              <div className="mb-5 grid gap-4 sm:grid-cols-2">
+                <article className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Total bookings</p>
+                  <p className="mt-2 text-3xl font-bold text-slate-900">{ownerSummary.totalBookings}</p>
+                </article>
+                <article className="rounded-2xl border border-emerald-200 bg-white p-5 shadow-sm">
+                  <p className="text-xs font-bold uppercase tracking-wide text-emerald-700">Payments received</p>
+                  <p className="mt-2 text-3xl font-bold text-slate-900">
+                    {hotelData.currency}{ownerSummary.paymentsReceived.toLocaleString('en-IN')}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-500">{ownerSummary.paidBookings} bookings marked paid</p>
+                </article>
+              </div>
               <div className="flex items-center justify-between mb-4">
                 <div>
                   <h4 className="text-lg font-bold font-serif text-slate-900">
@@ -261,13 +293,6 @@ export default function AdminDashboard({ isOpen, onClose }) {
                   </p>
                 </div>
                   <div className="flex items-center gap-3">
-                  <div className="text-xs font-semibold px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-lg">
-                    Total Revenue: {hotelData.currency}
-                    {bookings
-                      .filter((booking) => booking.status !== 'Cancelled')
-                      .reduce((sum, booking) => sum + (booking.grandTotal || 0), 0)
-                      .toLocaleString('en-IN')}
-                  </div>
                   <button type="button" onClick={loadBookings}
                     className="rounded-lg border border-slate-300 p-2 text-slate-600 hover:bg-slate-100"
                     title="Refresh bookings">
@@ -295,6 +320,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
                           <th className="py-3 px-4">Room Booked</th>
                           <th className="py-3 px-4">Dates / Nights</th>
                           <th className="py-3 px-4">Total Amount</th>
+                          <th className="py-3 px-4">Payment</th>
                           <th className="py-3 px-4">Status</th>
                           <th className="py-3 px-4 text-right">Action</th>
                         </tr>
@@ -334,6 +360,14 @@ export default function AdminDashboard({ isOpen, onClose }) {
                                 {hotelData.currency}{b.grandTotal?.toLocaleString('en-IN')}
                               </div>
                               <div className="text-[10px] text-emerald-600">Pay at Hotel</div>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <select value={b.paymentStatus || 'Pending'}
+                                onChange={(event) => handlePaymentStatus(b.id, event.target.value)}
+                                className="rounded-lg border border-slate-300 px-2 py-1 text-[11px]">
+                                <option value="Pending">Pending</option>
+                                <option value="Paid">Paid</option>
+                              </select>
                             </td>
                             <td className="py-3.5 px-4">
                               <select value={b.status}
@@ -757,8 +791,8 @@ export default function AdminDashboard({ isOpen, onClose }) {
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-bold uppercase text-slate-700">Temporary password (12+ characters)</label>
-                  <input type="password" required minLength={12} maxLength={128} value={accountPassword}
+                  <label className="mb-1 block text-xs font-bold uppercase text-slate-700">Temporary password</label>
+                  <input type="password" required value={accountPassword}
                     onChange={(event) => setAccountPassword(event.target.value)}
                     className="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" />
                 </div>

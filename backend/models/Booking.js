@@ -23,6 +23,7 @@ const bookingSchema = new mongoose.Schema({
     default: 'Confirmed (Pay at Hotel)',
   },
   paymentMode: { type: String, default: 'Cash / UPI / Card at Reception' },
+  paymentStatus: { type: String, enum: ['Pending', 'Paid'], default: 'Pending' },
 }, { timestamps: true, versionKey: false });
 
 export const Booking = mongoose.models.Booking || mongoose.model('Booking', bookingSchema);

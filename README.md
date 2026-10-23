@@ -38,7 +38,7 @@ Built with **React 18**, **Vite**, **Tailwind CSS**, **Express**, **MongoDB**, a
 
 ### 3. 🔐 Three Role Access
 * **Admin:** Can view and manage every booking, update booking statuses and hotel pricing/content, and create owner/user accounts.
-* **Owner:** Can view aggregate booking counts and booking revenue only. Guest and booking records are not returned to the owner API.
+* **Owner:** Can view aggregate booking counts and payments marked as received only. Guest and booking records are not returned to the owner API.
 * **User:** Can create bookings and read only their own bookings.
 * Public signup always assigns the `user` role. Only the one-time seed command creates the first admin.
 
@@ -86,14 +86,15 @@ Built with **React 18**, **Vite**, **Tailwind CSS**, **Express**, **MongoDB**, a
    MONGODB_URI=mongodb+srv://<db-user>:<db-password>@<cluster>.mongodb.net/hotel_booking
    JWT_SECRET=<random secret with at least 32 bytes>
    APP_ORIGIN=http://localhost:3000
+   PORT=5000
    ```
-   Add the MongoDB Atlas connection IP access and database user, then use a long, unique JWT secret. Never commit `.env`.
+   Add the MongoDB Atlas connection IP access and database user, then use a long, unique JWT secret. Use the database user's credentials from Atlas **Database Access** (not your Atlas website login). If the database username or password contains URI-reserved characters such as `@`, `:`, `/`, `?`, `#`, or `%`, percent-encode the username and password in the URI. Never commit `.env`.
 
 4. **Start the frontend and API in development:**
    ```bash
    npm run dev
    ```
-   Vite runs at `http://localhost:3000`; Express runs at `http://localhost:4000`. Vite proxies `/api` requests to Express.
+   Vite runs at `http://localhost:3000`; Express listens on `PORT` from `.env` (defaults to `5000`). Vite reads the same root `.env` value and proxies `/api` requests to that port.
 
 5. **Open in browser:**
    ```
@@ -102,19 +103,20 @@ Built with **React 18**, **Vite**, **Tailwind CSS**, **Express**, **MongoDB**, a
 
 ---
 
-## 👤 Create the First Admin
+## 👤 Create the First Admin and Owner
 
-Create an empty `.env`-ignored local bootstrap configuration for the one-time seed command. Use PowerShell:
+Set these local, `.env`-ignored values using your own email addresses and non-empty passwords:
 
-```powershell
-$env:BOOTSTRAP_ADMIN_EMAIL = "your-admin@example.com"
-$env:BOOTSTRAP_ADMIN_NAME = "Hotel Administrator"
-$env:BOOTSTRAP_ADMIN_PASSWORD = "use-a-unique-password-of-at-least-12-characters"
-npm run seed:admin
-Remove-Item Env:BOOTSTRAP_ADMIN_EMAIL, Env:BOOTSTRAP_ADMIN_NAME, Env:BOOTSTRAP_ADMIN_PASSWORD
+```env
+BOOTSTRAP_ADMIN_EMAIL=your-admin@example.com
+BOOTSTRAP_ADMIN_NAME=Hotel Administrator
+BOOTSTRAP_ADMIN_PASSWORD=your-admin-password
+BOOTSTRAP_OWNER_EMAIL=your-owner@example.com
+BOOTSTRAP_OWNER_NAME=Hotel Owner
+BOOTSTRAP_OWNER_PASSWORD=your-owner-password
 ```
 
-The script refuses to run if an admin already exists. After it succeeds, sign in on the website. The admin dashboard can create owner/user accounts; public signups can only create `user` accounts.
+After MongoDB Atlas credentials are working, run `npm run seed:demo-accounts` once to create the admin and owner accounts. The script refuses to overwrite existing admin/owner accounts or emails. Then use the login form's **Admin** or **Owner** option and the matching email/password. Admins can view/manage all bookings; owners receive only aggregate booking counts and revenue. Keep bootstrap passwords only in the ignored local `.env`; do not put them in frontend config or commit them.
 
 ## ☁️ Vercel + MongoDB Atlas
 
@@ -126,15 +128,19 @@ The script refuses to run if an admin already exists. After it succeeds, sign in
    - `APP_ORIGIN` — your production site origin, e.g. `https://your-site.vercel.app`. Vercel preview deployment origins are also checked against the forwarded request host.
 4. Redeploy after adding the variables. Open `https://your-site.vercel.app/api/health` to verify that the API function can connect to MongoDB and responds with `{"status":"ok"}`. The UI and API share the same origin, and auth cookies remain HttpOnly.
 
-Local development requires MongoDB URI and JWT secret in `.env`, then `npm run dev`. Vite proxies `/api` to Express locally. The one-time admin seed command uses temporary `BOOTSTRAP_ADMIN_*` environment variables and should not be configured as persistent Vercel variables.
+Local development requires MongoDB URI and JWT secret in `.env`, then `npm run dev`. Vite proxies `/api` to Express locally. Bootstrap credentials are only needed once to seed accounts; do not configure them as persistent Vercel variables.
+
+### Troubleshooting MongoDB Atlas authentication
+
+If the API log reports `bad auth : authentication failed`, Atlas rejected the username/password in `MONGODB_URI`. In Atlas, open **Security → Database Access**, reset the database user's password (or create a dedicated database user), then copy a fresh connection string from **Connect → Drivers** and replace its placeholders. If credentials contain reserved URI characters, percent-encode each credential before placing it in the connection string. Update `MONGODB_URI` in the environment where the error occurs (local `.env` or the matching Vercel Production/Preview environment), then restart the local API or redeploy Vercel. Do not paste the URI or password into chat or logs.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-├── api/[...path].js        # Vercel serverless adapter
-├── backend/                # Express API, models, controllers, middleware
+├── api/[...path].js        # Thin Vercel route entry point
+├── backend/                # Express API, Vercel handler, models, controllers, middleware
 ├── .env.example            # Environment variable template
 ├── frontend/               # Vite/React frontend application
 │   ├── index.html           # HTML entry point with Google Fonts

@@ -10,8 +10,8 @@ const fullName = process.env.BOOTSTRAP_ADMIN_NAME?.trim();
 if (!email || !password || !fullName) {
   throw new Error('Set BOOTSTRAP_ADMIN_EMAIL, BOOTSTRAP_ADMIN_PASSWORD, and BOOTSTRAP_ADMIN_NAME before seeding.');
 }
-if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length < 12 || password.length > 128) {
-  throw new Error('Use a valid admin email and a 12-128 character bootstrap password.');
+if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || password.length === 0) {
+  throw new Error('Use a valid admin email and a non-empty bootstrap password.');
 }
 
 try {

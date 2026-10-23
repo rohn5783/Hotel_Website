@@ -26,7 +26,7 @@ export default function OwnerApp() {
 
       <section className="mx-auto max-w-5xl space-y-6 p-6 sm:p-10">
         <div>
-          <h2 className="text-2xl font-bold font-serif">Booking & revenue overview</h2>
+          <h2 className="text-2xl font-bold font-serif">Bookings & payments overview</h2>
           <p className="mt-1 text-sm text-slate-500">
             This account can view totals only. Guest names, contact details, and booking records are restricted to admins.
           </p>
@@ -48,12 +48,12 @@ export default function OwnerApp() {
             <article className="rounded-2xl border border-emerald-200 bg-white p-6 shadow-sm">
               <div className="flex items-center gap-3 text-emerald-800">
                 <TrendingUp className="h-6 w-6" />
-                <h3 className="font-semibold">Total booking value</h3>
+                <h3 className="font-semibold">Payments received</h3>
               </div>
               <p className="mt-4 text-4xl font-bold">
-                {hotelData.currency}{ownerSummary.totalRevenue.toLocaleString('en-IN')}
+                {hotelData.currency}{ownerSummary.paymentsReceived.toLocaleString('en-IN')}
               </p>
-              <p className="mt-2 text-sm text-slate-500">Across all bookings</p>
+              <p className="mt-2 text-sm text-slate-500">{ownerSummary.paidBookings} bookings marked paid</p>
             </article>
           </div>
         )}
