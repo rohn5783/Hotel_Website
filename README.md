@@ -92,17 +92,15 @@ When the hotel owner logs in with their credentials, the public landing page tra
    ```
 
 3. **Configure Environment Variables (Optional for Supabase Cloud):**
-   Copy `.env.example` to `.env`:
-   ```bash
-   cp .env.example .env
-   ```
-   Add your Supabase credentials:
+   Create a `.env` file in the project root.
+   Add your Supabase credentials (the anon key is intended for browser use; secure your data with Supabase RLS policies):
    ```env
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
-   VITE_SUPERADMIN_SECRET_KEY=agency_royal_master_2026
    ```
    *(Note: The project works out of the box even without Supabase keys using local dual-mode).*
+
+   **Keep privileged secrets on the server.** Never use a `VITE_` prefix for a private key or access it from frontend code. This project currently has no Express backend; `SUPERADMIN_SECRET_KEY` must be configured only in the environment of a backend service you add/deploy. Frontend actions should call that API, which must authenticate and authorize each request server-side.
 
 4. **Start the local development server:**
    ```bash
