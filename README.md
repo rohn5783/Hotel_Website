@@ -1,8 +1,8 @@
 # 🏨 Luxury Hotel Booking & Management Platform
 
-A modern, high-performance, and responsive online hotel booking platform with an integrated **Owner CMS (Content Management System)**, **24/7 Hotel AI Concierge Robot**, and **Agency SuperAdmin Controls (with Client Kill Switch)**.
+A modern, responsive hotel booking platform with a Vercel-hosted Node API, MongoDB persistence, JWT cookie authentication, and role-based access for admins, owners, and users.
 
-Built with **React 18**, **Vite**, **Tailwind CSS**, and **Supabase (Free Tier)**.
+Built with **React 18**, **Vite**, **Tailwind CSS**, **Express**, **MongoDB**, and **Argon2id** password hashing.
 
 ---
 
@@ -36,28 +36,16 @@ Built with **React 18**, **Vite**, **Tailwind CSS**, and **Supabase (Free Tier)*
 
 ---
 
-### 3. 🏨 Hotel Owner CMS Dashboard (Admin)
-When the hotel owner logs in with their credentials, the public landing page transforms into a full-screen **Administrative Management Portal**:
-* **Live Bookings Manager:** View, filter, and manage all direct customer reservations with guest phone numbers, dates, room types, and total revenue.
-* **Hotel Profile & Branding:** Edit Hotel Name, Tagline, Hero Subtitles (e.g. "...in the heart of Pink City"), City/Location, Address, Phone, WhatsApp, and Email.
-* **Room Inventory, Pricing & Photos:** Edit Executive and Premium room rates per day, descriptions, specifications, and upload new room photos (file upload or URL).
-* **Nearby Tourist Attractions:** Add, edit, or delete tourist monuments and drive times.
-* **Account Security & Google Link:** Update password and link a personal Google account for future 1-click Google Sign-In.
-* **Live Website Preview:** One-click toggle to view the live website as visitors see it, with a floating top bar to return to the dashboard.
+### 3. 🔐 Three Role Access
+* **Admin:** Can view and manage every booking, update booking statuses and hotel pricing/content, and create owner/user accounts.
+* **Owner:** Can view aggregate booking counts and booking revenue only. Guest and booking records are not returned to the owner API.
+* **User:** Can create bookings and read only their own bookings.
+* Public signup always assigns the `user` role. Only the one-time seed command creates the first admin.
 
----
-
-### 4. 👑 Agency SuperAdmin Command Center
-* **Client Kill Switch (Payment Protection):** If a client defaults on development payments, the agency can toggle the Kill Switch to suspend the website and display a custom lockdown screen (*"Website Access Temporarily Suspended"*).
-* **Owner Credential Generator:** Create new Hotel Owner admin credentials with a single click, ready to copy and paste to WhatsApp or Email.
-
----
-
-### 5. ☁️ Supabase Cloud Database (Free Tier Ready)
-* **Dual-Mode Persistence:** 
-  * Works out of the box in local demo mode (persisting in browser storage).
-  * Connects seamlessly to a free Supabase Cloud PostgreSQL database simply by adding credentials in `.env`.
-* **Database Schema Included:** Complete SQL schema ready to paste into Supabase SQL Editor (`supabase_schema.sql`).
+### 4. 🛡️ Backend Security
+* JWT session is stored in a `HttpOnly`, `SameSite=Lax` cookie—not browser storage.
+* Passwords use Argon2id hashes; plain passwords are never stored.
+* API authorization checks roles on the server, and booking prices/taxes are calculated server-side from MongoDB hotel settings.
 
 ---
 
@@ -67,7 +55,8 @@ When the hotel owner logs in with their credentials, the public landing page tra
 * **Styling:** Tailwind CSS, PostCSS, Autoprefixer
 * **Icons:** Lucide React
 * **Visual Effects:** Canvas Confetti
-* **Database / Auth:** Supabase (`@supabase/supabase-js`) with Local Dual-Mode Fallback
+* **Backend:** Express API on Vercel Node Functions
+* **Database / Auth:** MongoDB Atlas, JWT cookies, Argon2id password hashes
 * **Fonts:** Cinzel (Royal Serif) & Plus Jakarta Sans
 
 ---
@@ -91,22 +80,20 @@ When the hotel owner logs in with their credentials, the public landing page tra
    npm install
    ```
 
-3. **Configure Environment Variables (Optional for Supabase Cloud):**
-   Create a `.env` file in the project root.
-   Add Supabase connection settings without a `VITE_` prefix:
+3. **Configure MongoDB and API environment variables:**
+   Create a `.env` file in the project root:
    ```env
-   SUPABASE_URL=https://your-project.supabase.co
-   SUPABASE_ANON_KEY=your-anon-key
+   MONGODB_URI=mongodb+srv://<db-user>:<db-password>@<cluster>.mongodb.net/hotel_booking
+   JWT_SECRET=<random secret with at least 32 bytes>
+   APP_ORIGIN=http://localhost:3000
    ```
-   The Vite dev server reads these values and serves them from `/api/supabase-config`, matching the Vercel deployment setup.
-   *(Note: The project works out of the box even without Supabase keys using local dual-mode).*
+   Add the MongoDB Atlas connection IP access and database user, then use a long, unique JWT secret. Never commit `.env`.
 
-   **The anon key is public by design.** `/api/supabase-config` sends it to the browser at runtime, so this removes the Vercel `VITE_` prefix warning but does not make the anon key secret. Never expose a service-role key or other private secret through this endpoint or a `VITE_` variable. This app uses Supabase Auth, Row Level Security (RLS), and an Edge Function for privileged admin creation.
-
-4. **Start the local development server:**
+4. **Start the frontend and API in development:**
    ```bash
    npm run dev
    ```
+   Vite runs at `http://localhost:3000`; Express runs at `http://localhost:4000`. Vite proxies `/api` requests to Express.
 
 5. **Open in browser:**
    ```
@@ -115,82 +102,48 @@ When the hotel owner logs in with their credentials, the public landing page tra
 
 ---
 
-## 🔑 Demo Login Credentials
+## 👤 Create the First Admin
 
-These demo credentials are available only in local demo mode (without Supabase configuration). In production, create users with Supabase Auth and assign trusted roles as described below.
+Create an empty `.env`-ignored local bootstrap configuration for the one-time seed command. Use PowerShell:
 
-| Role | Email | Password | Access Level |
-| :--- | :--- | :--- | :--- |
-| **🏨 Hotel Owner** | `owner@royalgrand.com` | `owner` | Full Administrative CMS Dashboard |
-| **👑 SuperAdmin (Agency)** | `superadmin@agency.com` | `admin` | Kill Switch & Credential Generator |
-| **🧳 Hotel Guest** | Any email or Google Sign-In | Any password | Public Booking & Reservations |
+```powershell
+$env:BOOTSTRAP_ADMIN_EMAIL = "your-admin@example.com"
+$env:BOOTSTRAP_ADMIN_NAME = "Hotel Administrator"
+$env:BOOTSTRAP_ADMIN_PASSWORD = "use-a-unique-password-of-at-least-12-characters"
+npm run seed:admin
+Remove-Item Env:BOOTSTRAP_ADMIN_EMAIL, Env:BOOTSTRAP_ADMIN_NAME, Env:BOOTSTRAP_ADMIN_PASSWORD
+```
 
----
+The script refuses to run if an admin already exists. After it succeeds, sign in on the website. The admin dashboard can create owner/user accounts; public signups can only create `user` accounts.
 
-## 🔒 Supabase Setup & Data Access
+## ☁️ Vercel + MongoDB Atlas
 
-1. In your Supabase project, open **SQL Editor** and run [`supabase_schema.sql`](./supabase_schema.sql). It enables RLS, creates customer profiles automatically, and restricts profile, settings, and booking access.
-2. In **Authentication → Users**, create or sign up the trusted agency account that will manage the hotel. Then inspect existing roles in SQL Editor:
-   ```sql
-   SELECT email, role FROM public.profiles WHERE role <> 'customer';
-   ```
-   The previous profile policy allowed users to change their own role, so preserve existing admin roles only after confirming each account is trusted. Promote the chosen agency account:
-   ```sql
-   UPDATE public.profiles
-   SET role = 'superadmin'
-   WHERE email = 'your-trusted-agency-email@example.com';
-   ```
-3. Install and link the Supabase CLI, then deploy the protected admin-account function:
-   ```bash
-   supabase login
-   supabase link --project-ref your-project-ref
-   supabase functions deploy create-admin
-   ```
-   The function checks the caller's Supabase session and `superadmin` role before creating an `admin`. Supabase's `SUPABASE_SERVICE_ROLE_KEY` stays in the Edge Function environment; never copy it to Vercel or a `VITE_` variable.
-4. In Vercel, configure `SUPABASE_URL` and `SUPABASE_ANON_KEY` as regular environment variables (without a `VITE_` prefix), then redeploy. The `/api/supabase-config` function supplies the public client configuration at runtime. Never set `SUPABASE_SERVICE_ROLE_KEY` in Vercel for this frontend API. Remove unused `SUPERADMIN_SECRET_KEY` variables; this app authorizes superadmins through Supabase Auth and database roles instead.
+1. Create a MongoDB Atlas cluster and database user; allow Vercel's outbound access as appropriate for your Atlas network policy.
+2. Import the repository root into Vercel as one project. The checked-in `vercel.json` configures `npm run build` and `frontend/dist` as the output directory. The function in `api/[...path].js` serves `/api/*` requests through Express; the Vercel rewrite serves the SPA for frontend routes. The frontend calls relative `/api/...` URLs, so it does not need a public API URL or a `VITE_` API variable.
+3. Add these server-side Vercel environment variables (no `VITE_` prefix). Set them for Production, and also Preview if you use preview deployments:
+   - `MONGODB_URI` — Atlas connection string.
+   - `JWT_SECRET` — unique random value of at least 32 bytes.
+   - `APP_ORIGIN` — your production site origin, e.g. `https://your-site.vercel.app`. Vercel preview deployment origins are also checked against the forwarded request host.
+4. Redeploy after adding the variables. Open `https://your-site.vercel.app/api/health` to verify that the API function can connect to MongoDB and responds with `{"status":"ok"}`. The UI and API share the same origin, and auth cookies remain HttpOnly.
 
-Customers can read only their own profile and bookings. Admins and superadmins can read all bookings and manage hotel settings/bookings. The public hotel settings contain website content and are intentionally readable by visitors—do not put private admin data there. Local demo mode stores data in the browser and is not a secure production backend.
+Local development requires MongoDB URI and JWT secret in `.env`, then `npm run dev`. Vite proxies `/api` to Express locally. The one-time admin seed command uses temporary `BOOTSTRAP_ADMIN_*` environment variables and should not be configured as persistent Vercel variables.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-├── .env.example            # Environment variables template
-├── index.html              # HTML entry point with Google Fonts
+├── api/[...path].js        # Vercel serverless adapter
+├── backend/                # Express API, models, controllers, middleware
+├── .env.example            # Environment variable template
+├── frontend/               # Vite/React frontend application
+│   ├── index.html           # HTML entry point with Google Fonts
+│   ├── vite.config.js       # Vite dev server and API proxy
+│   ├── tailwind.config.js   # Custom theme
+│   ├── postcss.config.js    # CSS processing
+│   └── src/                 # React pages, components, contexts, and API client
 ├── package.json            # Project dependencies & scripts
-├── supabase_schema.sql     # Supabase SQL schema for tables & RLS policies
-├── supabase/functions/
-│   └── create-admin/       # SuperAdmin-only account creation function
-├── tailwind.config.js      # Custom theme colors (Royal Gold & Deep Navy)
-├── vite.config.js          # Vite build configuration
-└── src/
-    ├── App.jsx             # Main router & role-based view switcher
-    ├── index.css           # Global Tailwind & scrollbar styles
-    ├── main.jsx            # React root mount
-    ├── components/
-    │   ├── AboutSection.jsx          # Heritage story & nearby Jaipur spots
-    │   ├── AdminDashboard.jsx        # Modal CMS for hotel management
-    │   ├── AmenitiesSection.jsx      # Royal privileges & features
-    │   ├── AuthModal.jsx             # Single unified Login/Signup modal
-    │   ├── BookingModal.jsx          # Multi-step direct booking flow
-    │   ├── Footer.jsx                # Contact details & inquiry form
-    │   ├── GallerySection.jsx        # Visual photo tour
-    │   ├── GoogleChooserModal.jsx    # Google account sign-in popup
-    │   ├── Hero.jsx                  # Main banner & quick booking search
-    │   ├── HotelRobot.jsx            # 24/7 AI concierge chatbot widget
-    │   ├── Navbar.jsx                # Sticky navigation header
-    │   ├── OwnerApp.jsx              # Full-screen Owner CMS Portal
-    │   ├── RoomsSection.jsx          # Room cards (Executive & Premium)
-    │   ├── SuperAdminModal.jsx       # Agency Kill Switch & Admin Generator
-    │   └── SuspendedScreen.jsx       # Lockdown screen when Kill Switch is active
-    ├── context/
-    │   ├── AuthContext.jsx           # Authentication & role management
-    │   └── HotelContext.jsx          # Hotel data & booking state store
-    ├── data/
-    │   └── hotelData.js              # Default hotel configuration & seed data
-    └── lib/
-        └── supabaseClient.js         # Supabase client & dual-mode storage
+└── vercel.json             # SPA routing for Vercel
 ```
 
 ---
@@ -199,9 +152,7 @@ Customers can read only their own profile and bookings. Admins and superadmins c
 
 This application is built as an optimized Single Page Application (SPA) and can be hosted for **free** on:
 
-* **Vercel:** Connect this GitHub repository, leave default build command (`npm run build`) and output directory (`dist`), and deploy!
-* **Cloudflare Pages:** Connect repository, framework preset `Vite`, deploy!
-* **Netlify / Hostinger Shared Hosting:** Run `npm run build` and upload the contents of the `dist/` folder.
+* **Vercel:** Deploy the Vite frontend and Node API together, with MongoDB environment variables configured.
 
 ---
 
