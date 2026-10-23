@@ -36,13 +36,18 @@ export default function SuperAdminModal({ isOpen, onClose }) {
   // Toggle kill switch
   const handleToggleKill = async () => {
     const nextState = !isKilled;
-    setIsKilled(nextState);
-    await toggleKillSwitch(nextState, killMessage);
-    setKillNotice(
-      nextState
-        ? '⚠️ KILL SWITCH ACTIVATED! Website is now suspended for regular visitors.'
-        : '✅ Website RESTORED! Website is now fully live.'
-    );
+    try {
+      await toggleKillSwitch(nextState, killMessage);
+      setIsKilled(nextState);
+      setKillNotice(
+        nextState
+          ? '⚠️ KILL SWITCH ACTIVATED! Website is now suspended for regular visitors.'
+          : '✅ Website RESTORED! Website is now fully live.'
+      );
+    } catch (error) {
+      console.error('Could not update kill switch:', error);
+      setKillNotice('Could not update the kill switch. Check your connection and permissions.');
+    }
     setTimeout(() => setKillNotice(''), 4000);
   };
 
@@ -52,7 +57,14 @@ export default function SuperAdminModal({ isOpen, onClose }) {
     setErrorMsg('');
     setGeneratedCreds(null);
 
-    const res = await createAdminAccount(ownerEmail, ownerPass, ownerName);
+    let res;
+    try {
+      res = await createAdminAccount(ownerEmail, ownerPass, ownerName);
+    } catch (error) {
+      console.error('Could not create hotel admin:', error);
+      setErrorMsg('Could not create the account. Please check your connection and permissions.');
+      return;
+    }
     if (!res.success) {
       setErrorMsg(res.message);
       return;

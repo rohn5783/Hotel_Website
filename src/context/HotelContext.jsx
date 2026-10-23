@@ -1,10 +1,12 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { hotelConfig as initialHotelConfig } from '../data/hotelData';
 import { supabase, isSupabaseConfigured, LOCAL_KEYS } from '../lib/supabaseClient';
+import { useAuth } from './AuthContext';
 
 const HotelContext = createContext();
 
 export function HotelProvider({ children }) {
+  const { currentUser } = useAuth();
   const [hotelData, setHotelData] = useState(initialHotelConfig);
   const [killSwitch, setKillSwitch] = useState({
     isKilled: false,
@@ -12,11 +14,20 @@ export function HotelProvider({ children }) {
   });
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const bookingsRequest = useRef(0);
 
   useEffect(() => {
     loadHotelAndSettings();
-    loadBookings();
   }, []);
+
+  useEffect(() => {
+    const requestId = ++bookingsRequest.current;
+    if (isSupabaseConfigured && !currentUser?.id) {
+      setBookings([]);
+      return;
+    }
+    loadBookings(requestId);
+  }, [currentUser?.id]);
 
   /**
    * Load Hotel Data & Kill Switch Settings
@@ -30,19 +41,12 @@ export function HotelProvider({ children }) {
           .eq('id', 'global_config')
           .maybeSingle();
 
+        if (error) throw error;
         if (data) {
           if (data.hotel_data) setHotelData(data.hotel_data);
           setKillSwitch({
             isKilled: Boolean(data.is_killed),
             reason: data.kill_message || killSwitch.reason,
-          });
-        } else {
-          // Seed Supabase with initial data
-          await supabase.from('site_settings').insert({
-            id: 'global_config',
-            is_killed: false,
-            kill_message: killSwitch.reason,
-            hotel_data: initialHotelConfig,
           });
         }
       } else {
@@ -75,17 +79,39 @@ export function HotelProvider({ children }) {
   /**
    * Load Bookings
    */
-  const loadBookings = async () => {
+  const loadBookings = async (requestId) => {
     try {
       if (isSupabaseConfigured && supabase) {
-        const { data } = await supabase
+        const { data, error } = await supabase
           .from('bookings')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (data) {
-          setBookings(data);
-        }
+        if (error) throw error;
+        if (requestId !== bookingsRequest.current) return;
+        setBookings((data || []).map((booking) => ({
+          id: booking.id,
+          bookingDate: booking.created_at
+            ? new Date(booking.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })
+            : '',
+          roomName: booking.room_name,
+          roomId: booking.room_id,
+          checkIn: booking.check_in,
+          checkOut: booking.check_out,
+          nights: booking.nights,
+          guestsCount: booking.guests_count,
+          roomsCount: booking.rooms_count,
+          guestName: booking.guest_name,
+          guestPhone: booking.guest_phone,
+          guestEmail: booking.guest_email,
+          specialRequest: booking.special_request,
+          arrivalTime: booking.arrival_time,
+          subtotal: Number(booking.subtotal),
+          taxes: Number(booking.taxes),
+          grandTotal: Number(booking.grand_total),
+          status: booking.status,
+          paymentMode: booking.payment_mode,
+        })));
       } else {
         const stored = JSON.parse(localStorage.getItem(LOCAL_KEYS.BOOKINGS) || '[]');
         if (stored.length === 0) {
@@ -134,9 +160,9 @@ export function HotelProvider({ children }) {
             }
           ];
           localStorage.setItem(LOCAL_KEYS.BOOKINGS, JSON.stringify(initialDemos));
-          setBookings(initialDemos);
+          if (requestId === bookingsRequest.current) setBookings(initialDemos);
         } else {
-          setBookings(stored);
+          if (requestId === bookingsRequest.current) setBookings(stored);
         }
       }
     } catch (err) {
@@ -147,16 +173,22 @@ export function HotelProvider({ children }) {
   /**
    * Hotel Owner updates details (CMS)
    */
-  const updateHotelData = async (newData) => {
-    setHotelData(newData);
-
-    if (isSupabaseConfigured && supabase) {
-      await supabase
+   const updateHotelData = async (newData) => {
+     if (isSupabaseConfigured && supabase) {
+      const { error } = await supabase
         .from('site_settings')
-        .upsert({ id: 'global_config', hotel_data: newData, updated_at: new Date().toISOString() });
+        .upsert({
+          id: 'global_config',
+          hotel_data: newData,
+          is_killed: killSwitch.isKilled,
+          kill_message: killSwitch.reason,
+          updated_at: new Date().toISOString(),
+        });
+      if (error) throw error;
     } else {
       localStorage.setItem(LOCAL_KEYS.HOTEL_DATA, JSON.stringify(newData));
     }
+    setHotelData(newData);
   };
 
   /**
@@ -164,15 +196,21 @@ export function HotelProvider({ children }) {
    */
   const toggleKillSwitch = async (isKilled, reason = killSwitch.reason) => {
     const updated = { isKilled, reason };
-    setKillSwitch(updated);
 
     if (isSupabaseConfigured && supabase) {
-      await supabase
+      const { error } = await supabase
         .from('site_settings')
-        .upsert({ id: 'global_config', is_killed: isKilled, kill_message: reason });
+        .upsert({
+          id: 'global_config',
+          hotel_data: hotelData,
+          is_killed: isKilled,
+          kill_message: reason,
+        });
+      if (error) throw error;
     } else {
       localStorage.setItem(LOCAL_KEYS.KILL_SWITCH, JSON.stringify(updated));
     }
+    setKillSwitch(updated);
   };
 
   /**
@@ -180,8 +218,12 @@ export function HotelProvider({ children }) {
    */
   const addBooking = async (newBooking) => {
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('bookings').insert({
+      if (!currentUser?.id) {
+        throw new Error('Sign in before creating a booking.');
+      }
+      const { error } = await supabase.from('bookings').insert({
         id: newBooking.id,
+        user_id: currentUser.id,
         guest_name: newBooking.guestName,
         guest_phone: newBooking.guestPhone,
         guest_email: newBooking.guestEmail,
@@ -200,6 +242,7 @@ export function HotelProvider({ children }) {
         status: newBooking.status,
         payment_mode: newBooking.paymentMode,
       });
+      if (error) throw error;
     }
 
     const updated = [newBooking, ...bookings];
@@ -212,7 +255,8 @@ export function HotelProvider({ children }) {
    */
   const deleteBooking = async (id) => {
     if (isSupabaseConfigured && supabase) {
-      await supabase.from('bookings').delete().eq('id', id);
+      const { error } = await supabase.from('bookings').delete().eq('id', id);
+      if (error) throw error;
     }
     const updated = bookings.filter((b) => b.id !== id);
     setBookings(updated);

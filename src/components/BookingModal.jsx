@@ -42,6 +42,7 @@ export default function BookingModal({
   const [specialRequest, setSpecialRequest] = useState('');
   const [arrivalTime, setArrivalTime] = useState('02:00 PM');
   const [confirmedBooking, setConfirmedBooking] = useState(null);
+  const [bookingError, setBookingError] = useState('');
 
   // Update if initialData or currentUser changes
   useEffect(() => {
@@ -130,7 +131,14 @@ export default function BookingModal({
     };
 
     // Save to HotelContext & Supabase / LocalStorage
-    await addBooking(newBooking);
+    setBookingError('');
+    try {
+      await addBooking(newBooking);
+    } catch (error) {
+      console.error('Booking could not be saved:', error);
+      setBookingError('Booking could not be saved. Please check your connection and try again.');
+      return;
+    }
 
     setConfirmedBooking(newBooking);
     setStep(3);
@@ -333,6 +341,11 @@ export default function BookingModal({
           {/* STEP 2: Guest Information */}
           {step === 2 && (
             <form onSubmit={handleGuestSubmit} className="space-y-5">
+              {bookingError && (
+                <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {bookingError}
+                </div>
+              )}
               <div className="bg-gold-50 rounded-2xl p-3 border border-gold-200 text-xs text-gold-900 flex items-center justify-between">
                 <div>
                   <span className="font-bold">{selectedRoom.name}</span> • {nights} night(s) ({checkIn} to {checkOut})

@@ -29,6 +29,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('bookings'); // 'bookings', 'hotel', 'rooms', 'tourism', 'security'
   const [formData, setFormData] = useState({ ...hotelData });
   const [saveSuccess, setSaveSuccess] = useState('');
+  const [saveError, setSaveError] = useState('');
 
   // Keep formData in sync when hotelData updates
   React.useEffect(() => {
@@ -100,9 +101,25 @@ export default function AdminDashboard({ isOpen, onClose }) {
   // Save all CMS changes to database/context
   const handleSaveCMS = async (e) => {
     e?.preventDefault();
-    await updateHotelData(formData);
-    setSaveSuccess('All changes saved successfully! Website updated in real-time.');
-    setTimeout(() => setSaveSuccess(''), 4000);
+    setSaveError('');
+    try {
+      await updateHotelData(formData);
+      setSaveSuccess('All changes saved successfully! Website updated in real-time.');
+      setTimeout(() => setSaveSuccess(''), 4000);
+    } catch (error) {
+      console.error('Could not save hotel settings:', error);
+      setSaveError('Could not save changes. Please check your connection and permissions.');
+    }
+  };
+
+  const handleDeleteBooking = async (id) => {
+    setSaveError('');
+    try {
+      await deleteBooking(id);
+    } catch (error) {
+      console.error('Could not delete booking:', error);
+      setSaveError('Could not delete this booking. Please check your connection and permissions.');
+    }
   };
 
   // Handle Password Change
@@ -163,6 +180,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
                 <span>{saveSuccess}</span>
               </span>
             )}
+            {saveError && <span role="alert" className="text-xs text-red-300">{saveError}</span>}
             <button
               onClick={onClose}
               className="p-2 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white transition"
@@ -322,7 +340,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
                             </td>
                             <td className="py-3.5 px-4 text-right">
                               <button
-                                onClick={() => deleteBooking(b.id)}
+                                onClick={() => handleDeleteBooking(b.id)}
                                 className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition"
                                 title="Delete"
                               >

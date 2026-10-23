@@ -93,14 +93,14 @@ When the hotel owner logs in with their credentials, the public landing page tra
 
 3. **Configure Environment Variables (Optional for Supabase Cloud):**
    Create a `.env` file in the project root.
-   Add your Supabase credentials (the anon key is intended for browser use; secure your data with Supabase RLS policies):
+   Add the public Supabase connection values (the anon key is intended for browser use; protect data with the RLS policies below):
    ```env
    VITE_SUPABASE_URL=https://your-project.supabase.co
    VITE_SUPABASE_ANON_KEY=your-anon-key
    ```
    *(Note: The project works out of the box even without Supabase keys using local dual-mode).*
 
-   **Keep privileged secrets on the server.** Never use a `VITE_` prefix for a private key or access it from frontend code. This project currently has no Express backend; `SUPERADMIN_SECRET_KEY` must be configured only in the environment of a backend service you add/deploy. Frontend actions should call that API, which must authenticate and authorize each request server-side.
+   **Never put a service-role key or other private secret in a `VITE_` variable or in Vercel frontend settings.** Vite-prefixed values are included in browser code. This app uses Supabase Auth, Row Level Security (RLS), and an Edge Function for privileged admin creation.
 
 4. **Start the local development server:**
    ```bash
@@ -116,13 +116,39 @@ When the hotel owner logs in with their credentials, the public landing page tra
 
 ## 🔑 Demo Login Credentials
 
-You can test all user roles using the single **"Sign In / Sign Up"** button on the website:
+These demo credentials are available only in local demo mode (without Supabase configuration). In production, create users with Supabase Auth and assign trusted roles as described below.
 
 | Role | Email | Password | Access Level |
 | :--- | :--- | :--- | :--- |
 | **🏨 Hotel Owner** | `owner@royalgrand.com` | `owner` | Full Administrative CMS Dashboard |
 | **👑 SuperAdmin (Agency)** | `superadmin@agency.com` | `admin` | Kill Switch & Credential Generator |
 | **🧳 Hotel Guest** | Any email or Google Sign-In | Any password | Public Booking & Reservations |
+
+---
+
+## 🔒 Supabase Setup & Data Access
+
+1. In your Supabase project, open **SQL Editor** and run [`supabase_schema.sql`](./supabase_schema.sql). It enables RLS, creates customer profiles automatically, and restricts profile, settings, and booking access.
+2. In **Authentication → Users**, create or sign up the trusted agency account that will manage the hotel. Then inspect existing roles in SQL Editor:
+   ```sql
+   SELECT email, role FROM public.profiles WHERE role <> 'customer';
+   ```
+   The previous profile policy allowed users to change their own role, so preserve existing admin roles only after confirming each account is trusted. Promote the chosen agency account:
+   ```sql
+   UPDATE public.profiles
+   SET role = 'superadmin'
+   WHERE email = 'your-trusted-agency-email@example.com';
+   ```
+3. Install and link the Supabase CLI, then deploy the protected admin-account function:
+   ```bash
+   supabase login
+   supabase link --project-ref your-project-ref
+   supabase functions deploy create-admin
+   ```
+   The function checks the caller's Supabase session and `superadmin` role before creating an `admin`. Supabase's `SUPABASE_SERVICE_ROLE_KEY` stays in the Edge Function environment; never copy it to Vercel or a `VITE_` variable.
+4. In Vercel, configure only `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` for the frontend, then redeploy. Remove unused `SUPERADMIN_SECRET_KEY` variables; this app authorizes superadmins through Supabase Auth and database roles instead.
+
+Customers can read only their own profile and bookings. Admins and superadmins can read all bookings and manage hotel settings/bookings. The public hotel settings contain website content and are intentionally readable by visitors—do not put private admin data there. Local demo mode stores data in the browser and is not a secure production backend.
 
 ---
 
@@ -133,6 +159,8 @@ You can test all user roles using the single **"Sign In / Sign Up"** button on t
 ├── index.html              # HTML entry point with Google Fonts
 ├── package.json            # Project dependencies & scripts
 ├── supabase_schema.sql     # Supabase SQL schema for tables & RLS policies
+├── supabase/functions/
+│   └── create-admin/       # SuperAdmin-only account creation function
 ├── tailwind.config.js      # Custom theme colors (Royal Gold & Deep Navy)
 ├── vite.config.js          # Vite build configuration
 └── src/

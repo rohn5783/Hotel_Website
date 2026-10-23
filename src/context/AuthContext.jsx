@@ -74,15 +74,10 @@ export function AuthProvider({ children }) {
   /**
    * Check if an email exists in users list
    */
-  const checkEmailExists = async (email) => {
+  const checkLocalEmailExists = (email) => {
     const cleanEmail = email.trim().toLowerCase();
-    if (isSupabaseConfigured && supabase) {
-      const { data } = await supabase.from('profiles').select('id').eq('email', cleanEmail).maybeSingle();
-      return Boolean(data);
-    } else {
-      const users = JSON.parse(localStorage.getItem(LOCAL_KEYS.USERS) || '[]');
-      return users.some((u) => u.email.toLowerCase() === cleanEmail);
-    }
+    const users = JSON.parse(localStorage.getItem(LOCAL_KEYS.USERS) || '[]');
+    return users.some((u) => u.email.toLowerCase() === cleanEmail);
   };
 
   /**
@@ -90,16 +85,6 @@ export function AuthProvider({ children }) {
    */
   const login = async (email, password) => {
     const cleanEmail = email.trim().toLowerCase();
-
-    // 1. First check if user exists
-    const exists = await checkEmailExists(cleanEmail);
-    if (!exists) {
-      return {
-        success: false,
-        notFound: true,
-        message: 'Is email se mujhe koi previous user nahi mila. Kripya pehle Signup karein!',
-      };
-    }
 
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -153,45 +138,36 @@ export function AuthProvider({ children }) {
   const signup = async (email, password, fullName, role = 'customer') => {
     const cleanEmail = email.trim().toLowerCase();
 
-    const exists = await checkEmailExists(cleanEmail);
-    if (exists) {
-      return {
-        success: false,
-        message: 'Ye email pehle se registered hai! Kripya Login karein.',
-      };
-    }
-
     if (isSupabaseConfigured && supabase) {
       const { data, error } = await supabase.auth.signUp({
         email: cleanEmail,
         password,
         options: {
-          data: { full_name: fullName, role },
+          data: { full_name: fullName },
         },
       });
       if (error) {
         return { success: false, message: error.message };
       }
-      // Insert profile record
       if (data?.user) {
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          email: cleanEmail,
-          full_name: fullName,
-          role,
-          is_google_linked: false,
-        });
         const userObj = {
           id: data.user.id,
           email: cleanEmail,
           fullName,
-          role,
+          role: 'customer',
           isGoogleLinked: false,
         };
         setCurrentUser(userObj);
         return { success: true, user: userObj };
       }
     } else {
+      if (checkLocalEmailExists(cleanEmail)) {
+        return {
+          success: false,
+          message: 'Ye email pehle se registered hai! Kripya Login karein.',
+        };
+      }
+
       // Local Storage
       const users = JSON.parse(localStorage.getItem(LOCAL_KEYS.USERS) || '[]');
       const newUser = {
@@ -351,11 +327,22 @@ export function AuthProvider({ children }) {
    */
   const createAdminAccount = async (email, temporaryPassword, fullName) => {
     const cleanEmail = email.trim().toLowerCase();
-    const exists = await checkEmailExists(cleanEmail);
-    if (exists) {
-      return { success: false, message: 'Ye email pehle se exist karti hai!' };
+
+    if (isSupabaseConfigured && supabase) {
+      const { data, error } = await supabase.functions.invoke('create-admin', {
+        body: { email: cleanEmail, temporaryPassword, fullName },
+      });
+
+      if (error) {
+        return { success: false, message: error.message };
+      }
+
+      return { success: true, user: data?.user };
     }
 
+    if (checkLocalEmailExists(cleanEmail)) {
+      return { success: false, message: 'Ye email pehle se exist karti hai!' };
+    }
     return signup(cleanEmail, temporaryPassword, fullName, 'admin');
   };
 
@@ -383,7 +370,6 @@ export function AuthProvider({ children }) {
         changePassword,
         createAdminAccount,
         logout,
-        checkEmailExists,
       }}
     >
       {children}
