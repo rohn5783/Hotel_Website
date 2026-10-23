@@ -1,69 +1,183 @@
-# 🏨 Ven Grand Hotel - Web Platform
+# 🏨 Luxury Hotel Booking & Management Platform
 
-[![Live Demo](https://img.shields.io/badge/Live_Demo-Ven_Grand_Hotel-blue?style=for-the-badge)](https://ven-grand-hotel.page.gd/?i=1)
+A modern, high-performance, and responsive online hotel booking platform with an integrated **Owner CMS (Content Management System)**, **24/7 Hotel AI Concierge Robot**, and **Agency SuperAdmin Controls (with Client Kill Switch)**.
 
----
-
-<div align="center">
-
-[![Türkçe](https://img.shields.io/badge/Dil-T%C3%BCrk%C3%A7e-red.svg?style=for-the-badge)](README.tr.md)
-[![English](https://img.shields.io/badge/Language-English-blue.svg?style=for-the-badge)](README.md)
-
-</div>
+Built with **React 18**, **Vite**, **Tailwind CSS**, and **Supabase (Free Tier)**.
 
 ---
 
-Ven Grand Hotel is a comprehensive, end-to-end accommodation service platform built using WordPress. This project was developed as a final project for the Content Design course at Burdur Mehmet Akif Ersoy University to digitalize the online presence of a luxury hotel, integrate a fully functional booking engine, and manage customer interactions.
+## 🌟 Key Features
 
-## 🚀 Features
-
-* **Real-Time Booking Engine:** Integrated with VikBooking for room allocation, seasonal pricing, and real-time availability checks.
-* **AI-Powered Customer Support:** Tidio AI chatbot integration for 24/7 instant visitor communication.
-* **Responsive & Premium UI:** Built with Astra Theme and Elementor for a seamless, mobile-optimized experience across all devices.
-* **Performance Optimized:** Configured with LiteSpeed Cache and WebP image optimization to ensure rapid page loading times on cloud hosting.
-* **Custom Localization:** Translated complex booking backend systems into Turkish using Loco Translate for the local market.
-* **Dynamic Forms:** Secure and modern customer inquiry forms managed via SureForms.
-
-## 🛠️ Tech Stack & Infrastructure
-
-* **CMS:** WordPress (v6.9.4)
-* **Theme/Design:** Astra Theme, Elementor, Ultimate Addons
-* **Core Plugins:** VikBooking (Reservation System), Tidio (AI Chat), Loco Translate (Localization), LiteSpeed Cache (Performance)
-* **Database Management:** Advanced MySQL relations (e.g., `wp_vikbooking_rooms`, `wp_vikbooking_reservations`)
-* **Hosting:** InfinityFree (Cloud setup with PHP/MySQL)
-
-## 📸 Interface Screenshots
-
-*(Note: Click on the images to view them in full resolution.)*
-
-### Homepage (Ana Sayfa)
-A dynamic landing page featuring high-resolution visuals and a quick-search booking widget.
-![Ana Sayfa](screenshots/anasayfa.png)
-
-### Our Rooms (Odalarımız)
-Detailed listings of room types (Standard, Deluxe, Suite) with capacities and pricing.
-![Odalarımız](screenshots/odalarimiz.png)
-
-### Reservation System (Rezervasyon)
-Interactive booking module running on the VikBooking engine.
-![Rezervasyon](screenshots/rezervasyon-sayfasi.png)
-
-### About & Contact (Hakkımızda ve İletişim)
-Corporate identity pages and dynamic contact forms with mapping.
-![Hakkımızda](screenshots/hakkimizda.png)
-
-![İletişim](screenshots/iletisim.png)
-
-## 💡 Problem Solving & Architecture
-
-During the development phase, several architectural challenges were resolved:
-1.  **Localization Barrier:** Overcame the lack of native Turkish support in the core booking engine by manually translating PO/MO files using Loco Translate.
-2.  **Resource Constraints:** Solved server-side database connection issues on shared hosting by implementing aggressive HTML/CSS minification and WebP image compression.
-3.  **Deployment:** Successfully migrated the complex local development environment (MAMP) to a live cloud server using All-in-One WP Migration, ensuring all permalinks and database relations remained intact.
-
-## 👥 Developers
-
-* **İbrahim Emir Akman** *
+### 1. 🧳 Public Guest Experience
+* **Direct Room Booking Flow:** Guests can select dates (Check-in / Check-out), guests, and room category.
+* **Zero Payment Gateway Needed:** Instant reservation with Pay-at-Hotel policy. Generates a printable booking voucher and direct WhatsApp confirmation.
+* **Room Showcase:**
+  * 🛏️ **Executive Room:** King/Twin bed, City/Garden view, Free Wi-Fi, Breakfast, AC, Smart TV.
+  * 👑 **Premium Room:** Grand Royal Bed, Palace/Balcony view, Rooftop & Pool access, Luxury bath.
+* **Key Amenities Highlighted:**
+  * ☕ Complimentary Royal Breakfast Buffet
+  * 🏊 Royal Azure Swimming Pool
+  * 🌅 Rooftop Sunset Lounge & Sky Dining
+  * 📶 200 Mbps High-Speed Wi-Fi
+  * 🚗 Free Valet Parking & 24/7 Front Desk
+* **Jaipur / City Sightseeing Guide:** Displays nearby monuments (Hawa Mahal, City Palace, Amer Fort, etc.) with travel distances.
 
 ---
-*This repository serves as a portfolio showcase. For a detailed breakdown of the UX design process, database logic, and future commercial scaling plans (VPS migration, Stripe/İyzico integration), please review the attached [Project Presentation PDF](./vengrandhotel_sunum.pdf).*
+
+### 2. 🤖 24/7 Hotel AI Concierge Robot ("Raj-Bot")
+* Floating interactive chat widget in the bottom-right corner.
+* Answers guest questions instantly:
+  * Room rates & inclusions
+  * Breakfast, swimming pool, and rooftop dining timings
+  * Standard check-in (2:00 PM) and check-out (11:00 AM) policies
+  * Sightseeing recommendations & taxi concierge
+  * Direct booking guidance
+* **Dynamic Knowledge Base:** Reads the hotel's latest rates and details in real-time — if the owner changes room prices or hotel details, the robot automatically answers with the updated information!
+
+---
+
+### 3. 🏨 Hotel Owner CMS Dashboard (Admin)
+When the hotel owner logs in with their credentials, the public landing page transforms into a full-screen **Administrative Management Portal**:
+* **Live Bookings Manager:** View, filter, and manage all direct customer reservations with guest phone numbers, dates, room types, and total revenue.
+* **Hotel Profile & Branding:** Edit Hotel Name, Tagline, Hero Subtitles (e.g. "...in the heart of Pink City"), City/Location, Address, Phone, WhatsApp, and Email.
+* **Room Inventory, Pricing & Photos:** Edit Executive and Premium room rates per day, descriptions, specifications, and upload new room photos (file upload or URL).
+* **Nearby Tourist Attractions:** Add, edit, or delete tourist monuments and drive times.
+* **Account Security & Google Link:** Update password and link a personal Google account for future 1-click Google Sign-In.
+* **Live Website Preview:** One-click toggle to view the live website as visitors see it, with a floating top bar to return to the dashboard.
+
+---
+
+### 4. 👑 Agency SuperAdmin Command Center
+* **Client Kill Switch (Payment Protection):** If a client defaults on development payments, the agency can toggle the Kill Switch to suspend the website and display a custom lockdown screen (*"Website Access Temporarily Suspended"*).
+* **Owner Credential Generator:** Create new Hotel Owner admin credentials with a single click, ready to copy and paste to WhatsApp or Email.
+
+---
+
+### 5. ☁️ Supabase Cloud Database (Free Tier Ready)
+* **Dual-Mode Persistence:** 
+  * Works out of the box in local demo mode (persisting in browser storage).
+  * Connects seamlessly to a free Supabase Cloud PostgreSQL database simply by adding credentials in `.env`.
+* **Database Schema Included:** Complete SQL schema ready to paste into Supabase SQL Editor (`supabase_schema.sql`).
+
+---
+
+## 🛠️ Tech Stack
+
+* **Frontend:** React 18, Vite 5
+* **Styling:** Tailwind CSS, PostCSS, Autoprefixer
+* **Icons:** Lucide React
+* **Visual Effects:** Canvas Confetti
+* **Database / Auth:** Supabase (`@supabase/supabase-js`) with Local Dual-Mode Fallback
+* **Fonts:** Cinzel (Royal Serif) & Plus Jakarta Sans
+
+---
+
+## 🚀 Quick Start & Local Setup
+
+### Prerequisites
+* Node.js (v18 or higher)
+* npm (v9 or higher)
+
+### Installation
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Locally-Devs/Hotel-booking-website.git
+   cd Hotel-booking-website
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Configure Environment Variables (Optional for Supabase Cloud):**
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   Add your Supabase credentials:
+   ```env
+   VITE_SUPABASE_URL=https://your-project.supabase.co
+   VITE_SUPABASE_ANON_KEY=your-anon-key
+   VITE_SUPERADMIN_SECRET_KEY=agency_royal_master_2026
+   ```
+   *(Note: The project works out of the box even without Supabase keys using local dual-mode).*
+
+4. **Start the local development server:**
+   ```bash
+   npm run dev
+   ```
+
+5. **Open in browser:**
+   ```
+   http://localhost:3000/
+   ```
+
+---
+
+## 🔑 Demo Login Credentials
+
+You can test all user roles using the single **"Sign In / Sign Up"** button on the website:
+
+| Role | Email | Password | Access Level |
+| :--- | :--- | :--- | :--- |
+| **🏨 Hotel Owner** | `owner@royalgrand.com` | `owner` | Full Administrative CMS Dashboard |
+| **👑 SuperAdmin (Agency)** | `superadmin@agency.com` | `admin` | Kill Switch & Credential Generator |
+| **🧳 Hotel Guest** | Any email or Google Sign-In | Any password | Public Booking & Reservations |
+
+---
+
+## 📁 Project Structure
+
+```
+├── .env.example            # Environment variables template
+├── index.html              # HTML entry point with Google Fonts
+├── package.json            # Project dependencies & scripts
+├── supabase_schema.sql     # Supabase SQL schema for tables & RLS policies
+├── tailwind.config.js      # Custom theme colors (Royal Gold & Deep Navy)
+├── vite.config.js          # Vite build configuration
+└── src/
+    ├── App.jsx             # Main router & role-based view switcher
+    ├── index.css           # Global Tailwind & scrollbar styles
+    ├── main.jsx            # React root mount
+    ├── components/
+    │   ├── AboutSection.jsx          # Heritage story & nearby Jaipur spots
+    │   ├── AdminDashboard.jsx        # Modal CMS for hotel management
+    │   ├── AmenitiesSection.jsx      # Royal privileges & features
+    │   ├── AuthModal.jsx             # Single unified Login/Signup modal
+    │   ├── BookingModal.jsx          # Multi-step direct booking flow
+    │   ├── Footer.jsx                # Contact details & inquiry form
+    │   ├── GallerySection.jsx        # Visual photo tour
+    │   ├── GoogleChooserModal.jsx    # Google account sign-in popup
+    │   ├── Hero.jsx                  # Main banner & quick booking search
+    │   ├── HotelRobot.jsx            # 24/7 AI concierge chatbot widget
+    │   ├── Navbar.jsx                # Sticky navigation header
+    │   ├── OwnerApp.jsx              # Full-screen Owner CMS Portal
+    │   ├── RoomsSection.jsx          # Room cards (Executive & Premium)
+    │   ├── SuperAdminModal.jsx       # Agency Kill Switch & Admin Generator
+    │   └── SuspendedScreen.jsx       # Lockdown screen when Kill Switch is active
+    ├── context/
+    │   ├── AuthContext.jsx           # Authentication & role management
+    │   └── HotelContext.jsx          # Hotel data & booking state store
+    ├── data/
+    │   └── hotelData.js              # Default hotel configuration & seed data
+    └── lib/
+        └── supabaseClient.js         # Supabase client & dual-mode storage
+```
+
+---
+
+## 🌐 Deployment (Zero VPS Required)
+
+This application is built as an optimized Single Page Application (SPA) and can be hosted for **free** on:
+
+* **Vercel:** Connect this GitHub repository, leave default build command (`npm run build`) and output directory (`dist`), and deploy!
+* **Cloudflare Pages:** Connect repository, framework preset `Vite`, deploy!
+* **Netlify / Hostinger Shared Hosting:** Run `npm run build` and upload the contents of the `dist/` folder.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. Developed and maintained by **Locally-Devs**.
