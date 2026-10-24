@@ -1,6 +1,6 @@
 # 🏨 Luxury Hotel Booking & Management Platform
 
-A modern, responsive hotel booking platform with a Vercel-hosted Node API, MongoDB persistence, JWT cookie authentication, and role-based access for admins, owners, and users.
+A modern, responsive hotel booking platform with a Vercel-hosted frontend, Render-hosted Node API, MongoDB persistence, JWT cookie authentication, and role-based access for admins, owners, and users.
 
 Built with **React 18**, **Vite**, **Tailwind CSS**, **Express**, **MongoDB**, and **Argon2id** password hashing.
 
@@ -55,7 +55,7 @@ Built with **React 18**, **Vite**, **Tailwind CSS**, **Express**, **MongoDB**, a
 * **Styling:** Tailwind CSS, PostCSS, Autoprefixer
 * **Icons:** Lucide React
 * **Visual Effects:** Canvas Confetti
-* **Backend:** Express API on Vercel Node Functions
+* **Backend:** Express API on Render
 * **Database / Auth:** MongoDB Atlas, JWT cookies, Argon2id password hashes
 * **Fonts:** Cinzel (Royal Serif) & Plus Jakarta Sans
 
@@ -118,15 +118,13 @@ BOOTSTRAP_OWNER_PASSWORD=your-owner-password
 
 After MongoDB Atlas credentials are working, run `npm run seed:demo-accounts` once to create the admin and owner accounts. The script refuses to overwrite existing admin/owner accounts or emails. Then use the login form's **Admin** or **Owner** option and the matching email/password. Admins can view/manage all bookings; owners receive only aggregate booking counts and revenue. Keep bootstrap passwords only in the ignored local `.env`; do not put them in frontend config or commit them.
 
-## ☁️ Vercel + MongoDB Atlas
+## Vercel frontend + Render API + MongoDB Atlas
 
-1. Create a MongoDB Atlas cluster and database user; allow Vercel's outbound access as appropriate for your Atlas network policy.
-2. Import the repository root into Vercel as one project. The checked-in `vercel.json` configures `npm run build` and `frontend/dist` as the output directory. The function in `api/[...path].js` serves `/api/*` requests through Express; the Vercel rewrite serves the SPA for frontend routes. The frontend calls relative `/api/...` URLs, so it does not need a public API URL or a `VITE_` API variable.
-3. Add these server-side Vercel environment variables (no `VITE_` prefix). Set them for Production, and also Preview if you use preview deployments:
-   - `MONGODB_URI` — Atlas connection string.
-   - `JWT_SECRET` — unique random value of at least 32 bytes.
-   - `APP_ORIGIN` — your production site origin, e.g. `https://your-site.vercel.app`. Vercel preview deployment origins are also checked against the forwarded request host.
-4. Redeploy after adding the variables. Open `https://your-site.vercel.app/api/health` to verify that the API function can connect to MongoDB and responds with `{"status":"ok"}`. The UI and API share the same origin, and auth cookies remain HttpOnly.
+1. Create a MongoDB Atlas cluster and database user; allow the Render service to connect under your Atlas network policy.
+2. Deploy the repository root to Vercel for the frontend. The checked-in `vercel.json` builds `frontend/dist`, proxies `/api/*` requests to `https://hotel-website-gwmt.onrender.com`, and sends frontend routes to the SPA. The browser keeps using same-origin `/api/...` URLs.
+3. Deploy the repository root to Render as a Node web service with build command `npm install` and start command `npm start`.
+4. Set these Render environment variables: `MONGODB_URI` (Atlas connection string), `JWT_SECRET` (unique random value of at least 32 bytes), and `APP_ORIGIN=https://hotelweb-ten-dusky.vercel.app`. Render supplies `PORT` automatically.
+5. Redeploy both services after configuration. Open `https://hotelweb-ten-dusky.vercel.app/api/health`; it should return `{"status":"ok"}`. Auth cookies remain HttpOnly and are served through the Vercel domain.
 
 Local development requires MongoDB URI and JWT secret in `.env`, then `npm run dev`. Vite proxies `/api` to Express locally. Bootstrap credentials are only needed once to seed accounts; do not configure them as persistent Vercel variables.
 
@@ -139,8 +137,7 @@ If the API log reports `bad auth : authentication failed`, Atlas rejected the us
 ## 📁 Project Structure
 
 ```
-├── api/[...path].js        # Thin Vercel route entry point
-├── backend/                # Express API, Vercel handler, models, controllers, middleware
+├── backend/                # Express API, models, controllers, middleware
 ├── .env.example            # Environment variable template
 ├── frontend/               # Vite/React frontend application
 │   ├── index.html           # HTML entry point with Google Fonts
@@ -149,7 +146,7 @@ If the API log reports `bad auth : authentication failed`, Atlas rejected the us
 │   ├── postcss.config.js    # CSS processing
 │   └── src/                 # React pages, components, contexts, and API client
 ├── package.json            # Project dependencies & scripts
-└── vercel.json             # SPA routing for Vercel
+└── vercel.json             # Vercel SPA routing and Render API proxy
 ```
 
 ---
@@ -158,7 +155,7 @@ If the API log reports `bad auth : authentication failed`, Atlas rejected the us
 
 This application is built as an optimized Single Page Application (SPA) and can be hosted for **free** on:
 
-* **Vercel:** Deploy the Vite frontend and Node API together, with MongoDB environment variables configured.
+* **Vercel + Render:** Deploy the Vite frontend to Vercel and the Node API to Render, with MongoDB environment variables configured on Render.
 
 ---
 
