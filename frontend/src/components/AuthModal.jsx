@@ -64,7 +64,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess, initialMode = 'l
           <div className="bg-royal-950 text-white p-6 pb-5 border-b border-gold-500/20 text-center relative overflow-hidden">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gold-500/20 text-gold-300 text-xs font-semibold uppercase tracking-wider mb-2 border border-gold-500/30">
               <Sparkles className="w-3.5 h-3.5 text-gold-400" />
-              <span>{triggerReason === 'booking' ? 'Login Required to Book' : 'Welcome to The Royal Grand Palace'}</span>
+              <span>{triggerReason === 'booking' ? 'Login Required to Book' : 'Welcome to Lake Inn'}</span>
             </div>
 
             <h3 className="text-2xl font-bold font-serif text-white">

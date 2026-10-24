@@ -25,7 +25,7 @@ export default function AmenitiesSection() {
             Crafted for Unmatched Comfort
           </h2>
           <p className="text-slate-600 text-base sm:text-lg">
-            From sunrise breakfast spreads to sunset dining atop our rooftop terrace, enjoy world-class amenities designed for your memorable Jaipur getaway.
+            Enjoy a comfortable stay in Jodhpur with thoughtful amenities for a relaxing getaway.
           </p>
         </div>
 
@@ -73,7 +73,7 @@ export default function AmenitiesSection() {
                 Sunset Rooftop Lounge & Azure Pool
               </h3>
               <p className="text-slate-300 text-sm sm:text-base leading-relaxed mb-6 font-light">
-                Unwind by our tranquil royal pool during the sunny afternoons, and head up to the rooftop terrace for an unforgettable evening with candlelit dining, signature mocktails, and live Rajasthani folk music overlooking the Jaipur skyline.
+                Unwind by the pool during the sunny afternoons, and head up to the rooftop terrace for an evening with candlelit dining and views of Jodhpur.
               </p>
               <div className="flex flex-wrap gap-4 text-xs font-semibold text-gold-300">
                 <span className="bg-white/10 px-3 py-1.5 rounded-lg border border-white/15">🌅 Sunset Views</span>

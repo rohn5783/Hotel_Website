@@ -83,7 +83,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
 
   const handleAddSpot = () => {
     const newSpot = {
-      name: 'New Jaipur Monument',
+      name: `New ${hotelData.city.split(',')[0]} Landmark`,
       distance: '5 km (15 mins)',
       image: 'https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=400&q=80',
     };
@@ -680,7 +680,7 @@ export default function AdminDashboard({ isOpen, onClose }) {
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-lg font-bold font-serif text-slate-900">
-                    Nearby Jaipur Sightseeing Attractions
+                    Nearby {hotelData.city.split(',')[0]} Sightseeing Attractions
                   </h4>
                   <p className="text-xs text-slate-500">
                     Add or modify monuments and distance recommendations shown to guests.

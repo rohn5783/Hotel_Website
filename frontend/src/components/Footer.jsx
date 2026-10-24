@@ -49,12 +49,14 @@ export default function Footer({ onOpenBooking }) {
                   {hotelData.phone}
                 </a>
               </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-4 h-4 text-gold-400 flex-shrink-0" />
-                <a href={`mailto:${hotelData.email}`} className="hover:text-gold-300 transition">
-                  {hotelData.email}
-                </a>
-              </div>
+              {hotelData.email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-gold-400 flex-shrink-0" />
+                  <a href={`mailto:${hotelData.email}`} className="hover:text-gold-300 transition">
+                    {hotelData.email}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
 

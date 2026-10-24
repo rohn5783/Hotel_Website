@@ -1,13 +1,13 @@
 // Hotel Configuration Data - Easily customizable for any hotel or client!
 export const hotelConfig = {
-  name: "The Royal Grand Palace",
-  tagline: "Experience the Royal Heritage of Jaipur",
-  subTagline: "A majestic oasis of Rajputana grandeur, modern luxury, and warm royal hospitality in the heart of the Pink City.",
-  city: "Jaipur, Rajasthan",
-  address: "Palace Road, Near C-Scheme & MI Road, Jaipur, Rajasthan 302001",
-  phone: "+91 141 238 9000",
-  whatsapp: "+91 98290 12345",
-  email: "reservations@royalgrandpalacejaipur.com",
+  name: "Lake Inn",
+  tagline: "A comfortable stay in Jodhpur",
+  subTagline: "A warm and welcoming stay in Ratanada, Jodhpur.",
+  city: "Jodhpur, Rajasthan",
+  address: "Bhati Circle, Tank House, Circuit House Road, Gayatri Colony, Ratanada, Jodhpur, Rajasthan 342011",
+  phone: "+91 93145 00152",
+  whatsapp: "+91 93145 00152",
+  email: "",
   rating: 4.9,
   reviewsCount: 384,
   currency: "₹",
@@ -50,7 +50,7 @@ export const hotelConfig = {
     {
       id: "rooftop",
       name: "Rooftop Sunset Lounge & Dining",
-      description: "Dine under starry skies with candlelit tables, live folk music, and 360° views of Jaipur.",
+      description: "Dine under starry skies with candlelit tables, live folk music, and views of Jodhpur.",
       icon: "UtensilsCrossed",
       badge: "Highlight"
     },
@@ -139,12 +139,12 @@ export const hotelConfig = {
     }
   ],
 
-  // Attractions nearby in Jaipur
+  // Attractions in and around Jodhpur
   nearbyAttractions: [
-    { name: "Hawa Mahal", distance: "3.2 km (10 mins)", image: "https://images.unsplash.com/photo-1609137144822-44161b96a928?auto=format&fit=crop&w=400&q=80" },
-    { name: "City Palace", distance: "3.8 km (12 mins)", image: "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=400&q=80" },
-    { name: "Amer Fort", distance: "11 km (25 mins)", image: "https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=400&q=80" },
-    { name: "Jantar Mantar", distance: "3.5 km (11 mins)", image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=400&q=80" }
+    { name: "Umaid Bhawan Palace", distance: "Approx. 3 km", image: "https://images.unsplash.com/photo-1609137144822-44161b96a928?auto=format&fit=crop&w=400&q=80" },
+    { name: "Mehrangarh Fort", distance: "Approx. 5 km", image: "https://images.unsplash.com/photo-1599661046289-e31897846e41?auto=format&fit=crop&w=400&q=80" },
+    { name: "Jaswant Thada", distance: "Approx. 5 km", image: "https://images.unsplash.com/photo-1585135497273-1a86b09fe70e?auto=format&fit=crop&w=400&q=80" },
+    { name: "Ghanta Ghar (Clock Tower)", distance: "Approx. 4 km", image: "https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?auto=format&fit=crop&w=400&q=80" }
   ],
 
   // Frequently Asked Questions

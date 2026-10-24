@@ -28,7 +28,7 @@ export default function HotelRobot({ onOpenBooking }) {
     'Is breakfast & pool included?',
     'Rooftop restaurant details?',
     'Check-in & Check-out timing?',
-    'Nearby Jaipur tourist places?',
+    `Nearby ${hotelData.city.split(',')[0]} tourist places?`,
     'Do I need to pay online right now?',
   ];
 
@@ -78,7 +78,7 @@ export default function HotelRobot({ onOpenBooking }) {
     }
 
     if (query.includes('rooftop') || query.includes('terrace') || query.includes('sunset') || query.includes('sky')) {
-      return `🌅 Our Rooftop Sunset Lounge & Dining offers 360° panoramic views of the Jaipur city skyline and Aravalli hills. Enjoy candlelit dining and traditional live Rajasthani folk music every evening from 6:30 PM onwards!`;
+      return `🌅 Our rooftop offers lovely views across ${hotelData.city.split(',')[0]}.`;
     }
 
     if (query.includes('check') || query.includes('timing') || query.includes('time') || query.includes('early')) {
@@ -91,7 +91,7 @@ export default function HotelRobot({ onOpenBooking }) {
 
     if (query.includes('tourist') || query.includes('places') || query.includes('sightseeing') || query.includes('hawa mahal') || query.includes('fort') || query.includes('near')) {
       const spots = hotelData.nearbyAttractions.map((s) => `• ${s.name} (${s.distance})`).join('\n');
-      return `📍 We are centrally located in Jaipur! Popular monuments nearby:\n${spots}\n\nOur concierge can also arrange private AC royal taxis for local sightseeing tours.`;
+      return `📍 We are located in ${hotelData.city}! Popular places nearby:\n${spots}\n\nPlease contact the hotel for local sightseeing help.`;
     }
 
     if (query.includes('address') || query.includes('location') || query.includes('contact') || query.includes('phone') || query.includes('number')) {
